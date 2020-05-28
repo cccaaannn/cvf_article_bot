@@ -2,8 +2,7 @@
 [CVF site](http://openaccess.thecvf.com/menu.py)
 
 
-**usage**
-___
+## usage
 
 ```python
 from cvf_article_bot import cvf_article_bot
