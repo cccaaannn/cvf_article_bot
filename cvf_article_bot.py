@@ -5,7 +5,7 @@ import shutil
 import json
 import time
 import os
-
+import re
 
 class cvf_article_bot():
     def __init__(self, main_save_folder_path = "articles", articles_text_name = "articles.txt"):
@@ -51,11 +51,32 @@ class cvf_article_bot():
         except:
             raise ValueError("cfg file is broken")
 
-   
+    def __match_function(self, match_whole_word_only, pattern, search_text):
+        # convert to lower
+        pattern = pattern.lower()
+        search_text = search_text.lower()
 
-    def get_articles(self, keywords, write_to_file=False, download=False):   
+        is_match = False
+        # use regex for match_whole_word_only
+        if(match_whole_word_only):
+            compiled_pattern = re.compile("\\b{0}\\b".format(pattern))
+            is_match = compiled_pattern.search(search_text)
+        # use in for rest
+        else:
+            is_match = (pattern in search_text)
+
+        if(is_match):
+            return True
+        else:
+            return False
+
+
+
+    def get_articles(self, keywords, match_whole_word_only=False, write_to_file=False, download=False):   
         # time execution
         start_time = time.time()
+        print("\nThis generally takes 2,5 to 3 second per link without downloads (links are in the cfg file)\n\n")
+
         matched_article_counter = 0
         for cvf_conference_name in self.cvf_conferences:
             new_file_path = os.path.join(self.main_save_folder_name, cvf_conference_name)
@@ -70,11 +91,20 @@ class cvf_article_bot():
 
                     # match if a list of words given
                     if(isinstance(keyword, list)):
-                        if(all(map(lambda keywords_list: True if keywords_list.lower() in article.text.lower() else False, keyword))):
+
+                        # this look so complicated so I made the other one
+                        # if(all(map(lambda keywords_list: True if self.__match_function(match_whole_word_only, keywords_list, article.text) else False, keyword))):
+                            # is_match = True
+
+                        for keyword_list_element in keyword:
+                            if(not self.__match_function(match_whole_word_only, keyword_list_element, article.text)):
+                                break
+                        else:
                             is_match = True
+
                     # match if only single word
                     else:
-                        if(keyword.lower() in article.text.lower()):
+                        if(self.__match_function(match_whole_word_only, keyword, article.text)):
                             is_match = True
 
 
@@ -94,6 +124,6 @@ class cvf_article_bot():
                         if(write_to_file):
                             self.__write_to_file(contet_text)
 
-        print("--- %s seconds ---" % (time.time() - start_time))
+        print("--- {0} seconds ---".format(time.time() - start_time))
 
 
