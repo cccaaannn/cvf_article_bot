@@ -75,7 +75,7 @@ class cvf_article_bot():
     def get_articles(self, keywords, match_whole_word_only=False, write_to_file=False, download=False):   
         # time execution
         start_time = time.time()
-        print("\nThis generally takes 2,5 to 3 second per link without downloads (links are in the cfg file)\n\n")
+        print("\nThis generally takes 3 to 30 second per link depending on connection without downloads (links are in the cfg file)\n\n")
 
         matched_article_counter = 0
         for cvf_conference_name in self.cvf_conferences:
@@ -108,18 +108,20 @@ class cvf_article_bot():
                             is_match = True
 
 
+                    # process if match
                     if(is_match):
                         matched_article_name = article.text
-                        matched_article_link = self.base_url + article.find_next_sibling("dd").find_next_sibling("dd").find("a")["href"]
+                        matched_article_info_link = self.base_url + article.find("a")["href"]
+                        matched_article_download_link = self.base_url + article.find_next_sibling("dd").find_next_sibling("dd").find("a")["href"]
                         matched_article_counter += 1
                         
-                        contet_text ="{}- name: {}\nurl: {}\ncvf_conference_name: {}\nmatched_words: {}\n\n".format(matched_article_counter, matched_article_name, matched_article_link, cvf_conference_name, keyword)
+                        contet_text ="{}-\nname: {}\ninfo link: {}\ndownload link: {}\nconference name: {}\nmatched_words: {}\n\n".format(matched_article_counter, matched_article_name, matched_article_info_link, matched_article_download_link, cvf_conference_name, keyword)
                         print(contet_text)
 
                         if(download):
                             # create file if new article exists
                             self.__create_folder(new_file_path)
-                            self.__download_file(matched_article_link, new_file_path)
+                            self.__download_file(matched_article_download_link, new_file_path)
 
                         if(write_to_file):
                             self.__write_to_file(contet_text)
